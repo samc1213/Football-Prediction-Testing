@@ -8,14 +8,28 @@ class Team:
         self.name = name
 
 class Game:
-    def __init__(self, date, hometeamcode, visitteamcode):
+    def __init__(self, date, hometeamcode, visitteamcode, rushyds=None, passyds=None, rushtds=None, passtds=None, points=None, avgoffrushyds=None, avgdefrushyds=None, avgoffpassyds=None, avgdefpassyds=None):
         self.date = date
         self.hometeamcode = hometeamcode
         self.visitteamcode = visitteamcode
-        # self.homerushyards = homerushyards
-        # self.homepassyards = homepassyards
-        # self.homerushtds = homerushtds
-        # self.homepasstds = homepasstds
+        if rushyds is None:
+            self.rushyds = [None, None]
+        if passyds is None:
+            self.passyds = [None, None]
+        if points is None:
+            self.points = [None, None]
+        if rushtds is None:
+            self.rushtds = [None, None]
+        if passtds is None:
+            self.passtds = [None, None]
+        if avgoffrushyds is None:
+            self.avgoffrushyds = [None, None]
+        if avgdefrushyds is None:
+            self.avgdefrushyds = [None, None]
+        if avgdefpassyds is None:
+            self.avgdefpassyds = [None, None]
+        if avgoffpassyds is None:
+            self.avgoffpassyds = [None, None]
 
 teams = {}
 games = {}
@@ -34,18 +48,19 @@ with open('team-game-statistics.csv') as gamestats:
         gamecode = int(row['Game Code'])
         rowTeamCode = int(row['Team Code'])
         rowGame = games[gamecode]
-
+        # HOME, AWAY!!!! HOME, AWAY in ze lists
         if rowGame.hometeamcode == rowTeamCode:
-            rowGame.homerushyards = row['Rush Yard']
-            rowGame.homepassyards = row['Pass Yard']
-            rowGame.homerushtds = row['Rush TD']
-            rowGame.homepasstds = row['Pass TD']
+            rowGame.rushyds[0] = int(row['Rush Yard'])
+            rowGame.passyds[0] = int(row['Pass Yard'])
+            rowGame.rushtds[0] = int(row['Rush TD'])
+            rowGame.passtds[0] = int(row['Pass TD'])
+            rowGame.points[0] = int(row['Points'])
         else:
-            rowGame.visitrushyards = row['Rush Yard']
-            rowGame.visitpassyards = row['Pass Yard']
-            rowGame.visitrushtds = row['Rush TD']
-            rowGame.visitpasstds = row['Pass TD']
-
+            rowGame.rushyds[1] = int(row['Rush Yard'])
+            rowGame.passyds[1] = int(row['Pass Yard'])
+            rowGame.rushtds[1] = int(row['Rush TD'])
+            rowGame.passtds[1] = int(row['Pass TD'])
+            rowGame.points[1] = int(row['Points'])
         if rowTeamCode not in teams:
             teams[rowTeamCode] = Team()
 
@@ -54,5 +69,46 @@ with open('team-game-statistics.csv') as gamestats:
 for code, team in teams.iteritems():
     team.games.sort(key=lambda x: x.date)
 
+offrushyds = 0
+offpassyds = 0
+defrushyds = 0
+defpassyds = 0
+gamecount = 0.0
+firstgame = True
 for game in teams[5].games:
-    print game.date
+    if game.hometeamcode == 5:
+        if firstgame:
+            game.avgoffrushyds[0] = offrushyds
+            game.avgdefrushyds[0] = defrushyds
+            firstgame = False
+            offrushyds += game.rushyds[0]
+            defrushyds += game.rushyards[1]
+        else:
+            game.avgoffrushyds[0] = offrushyds/gamecount
+            game.avgdefrushyds[0] = defrushyds/gamecount
+            offrushyds += game.rushyds[0]
+            defrushyds += game.rushyds[1]
+
+    elif game.visitteamcode == 5:
+        if firstgame:
+            game.avgoffrushyds[1] = offrushyds
+            game.avgdefrushyds[1] = defrushyds
+            firstgame = False
+            offrushyds += game.rushyds[1]
+            defrushyds += game.rushyds[0]
+        else:
+            game.avgoffrushyds[1] = offrushyds/gamecount
+            game.avgdefrushyds[1] = defrushyds/gamecount
+            offrushyds += game.rushyds[1]
+            defrushyds += game.rushyds[0]
+    else:
+        print "ERROR"
+    gamecount += 1.0
+
+for game in teams[5].games:
+    if game.hometeamcode == 5:
+        print game.avgoffrushyds[0], " offh"
+        print game.avgdefrushyds[0], " home"
+    else:
+        print game.avgoffrushyds[1], " offv"
+        print game.avgdefrushyds[1], " visit"
