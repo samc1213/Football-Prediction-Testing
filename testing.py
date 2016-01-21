@@ -77,32 +77,24 @@ gamecount = 0.0
 firstgame = True
 for game in teams[5].games:
     if game.hometeamcode == 5:
-        if firstgame:
-            game.avgoffrushyds[0] = offrushyds
-            game.avgdefrushyds[0] = defrushyds
-            firstgame = False
-            offrushyds += game.rushyds[0]
-            defrushyds += game.rushyards[1]
-        else:
-            game.avgoffrushyds[0] = offrushyds/gamecount
-            game.avgdefrushyds[0] = defrushyds/gamecount
-            offrushyds += game.rushyds[0]
-            defrushyds += game.rushyds[1]
-
+        A = 0
+        B = 1
     elif game.visitteamcode == 5:
-        if firstgame:
-            game.avgoffrushyds[1] = offrushyds
-            game.avgdefrushyds[1] = defrushyds
-            firstgame = False
-            offrushyds += game.rushyds[1]
-            defrushyds += game.rushyds[0]
-        else:
-            game.avgoffrushyds[1] = offrushyds/gamecount
-            game.avgdefrushyds[1] = defrushyds/gamecount
-            offrushyds += game.rushyds[1]
-            defrushyds += game.rushyds[0]
+        A = 1
+        B = 0
     else:
         print "ERROR"
+    if firstgame:
+        game.avgoffrushyds[A] = offrushyds
+        game.avgdefrushyds[A] = defrushyds
+        firstgame = False
+        offrushyds += game.rushyds[A]
+        defrushyds += game.rushyds[B]
+    else:
+        game.avgoffrushyds[A] = offrushyds/gamecount
+        game.avgdefrushyds[A] = defrushyds/gamecount
+        offrushyds += game.rushyds[A]
+        defrushyds += game.rushyds[B]
     gamecount += 1.0
 
 for game in teams[5].games:
