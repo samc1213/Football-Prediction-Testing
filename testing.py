@@ -87,20 +87,32 @@ for game in teams[5].games:
     if firstgame:
         game.avgoffrushyds[A] = offrushyds
         game.avgdefrushyds[A] = defrushyds
+        game.avgoffpassyds[A] = offpassyds
+        game.avgdefpassyds[A] = defpassyds
         firstgame = False
         offrushyds += game.rushyds[A]
         defrushyds += game.rushyds[B]
+        offpassyds += game.passyds[A]
+        defpassyds += game.passyds[B]
     else:
         game.avgoffrushyds[A] = offrushyds/gamecount
         game.avgdefrushyds[A] = defrushyds/gamecount
+        game.avgoffpassyds[A] = offpassyds/gamecount
+        game.avgdefpassyds[A] = defpassyds/gamecount
         offrushyds += game.rushyds[A]
         defrushyds += game.rushyds[B]
+        offpassyds += game.passyds[A]
+        defpassyds += game.passyds[B]
     gamecount += 1.0
 
 for game in teams[5].games:
     if game.hometeamcode == 5:
         print game.avgoffrushyds[0], " offh"
         print game.avgdefrushyds[0], " home"
+        print game.avgoffrushyds[0]
+        print game.avgdefpassyds[0]
     else:
         print game.avgoffrushyds[1], " offv"
         print game.avgdefrushyds[1], " visit"
+        print game.avgoffrushyds[1]
+        print game.avgdefpassyds[1]
