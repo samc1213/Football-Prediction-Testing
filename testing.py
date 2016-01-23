@@ -8,7 +8,7 @@ class Team:
         self.name = name
 
 class Game:
-    def __init__(self, date, hometeamcode, visitteamcode, rushyds=None, passyds=None, rushtds=None, passtds=None, points=None, avgoffrushyds=None, avgdefrushyds=None, avgoffpassyds=None, avgdefpassyds=None):
+    def __init__(self, date, hometeamcode, visitteamcode, rushyds=None, passyds=None, rushtds=None, passtds=None, points=None, avgoffrushyds=None, avgdefrushyds=None, avgoffpassyds=None, avgdefpassyds=None, passats=None, rushats=None,  yardsperplay=None):
         self.date = date
         self.hometeamcode = hometeamcode
         self.visitteamcode = visitteamcode
@@ -30,6 +30,12 @@ class Game:
             self.avgdefpassyds = [None, None]
         if avgoffpassyds is None:
             self.avgoffpassyds = [None, None]
+        if passats is None:
+            self.passats = [None, None]
+        if rushats is None:
+            self.rushats = [None, None]
+        if yardsperplay is None:
+            self.yardsperplay = [None, None]
 
 def getMeTeamsAndGamesBitch():
     teams = {}
@@ -55,12 +61,16 @@ def getMeTeamsAndGamesBitch():
                 rowGame.passyds[0] = int(row['Pass Yard'])
                 rowGame.rushtds[0] = int(row['Rush TD'])
                 rowGame.passtds[0] = int(row['Pass TD'])
+                rowGame.passats[0] = int(row['Pass Att'])
+                rowGame.rushats[0] = int(row['Rush Att'])
                 rowGame.points[0] = int(row['Points'])
             else:
                 rowGame.rushyds[1] = int(row['Rush Yard'])
                 rowGame.passyds[1] = int(row['Pass Yard'])
                 rowGame.rushtds[1] = int(row['Rush TD'])
                 rowGame.passtds[1] = int(row['Pass TD'])
+                rowGame.passats[1] = int(row['Pass Att'])
+                rowGame.rushats[1] = int(row['Rush Att'])
                 rowGame.points[1] = int(row['Points'])
             if rowTeamCode not in teams:
                 teams[rowTeamCode] = Team()
@@ -74,6 +84,8 @@ def getMeTeamsAndGamesBitch():
     offpassyds = 0
     defrushyds = 0
     defpassyds = 0
+    rushats = 0
+    passats = 0
     gamecount = 0.0
     firstgame = True
     for teamid, team in teams.iteritems():
@@ -91,19 +103,25 @@ def getMeTeamsAndGamesBitch():
                 game.avgdefrushyds[A] = defrushyds
                 game.avgoffpassyds[A] = offpassyds
                 game.avgdefpassyds[A] = defpassyds
+                game.yardsperplay[A] = 0
                 firstgame = False
                 offrushyds += game.rushyds[A]
                 defrushyds += game.rushyds[B]
                 offpassyds += game.passyds[A]
                 defpassyds += game.passyds[B]
+                rushats += game.rushats[A]
+                passats += game.passats[A]
             else:
                 game.avgoffrushyds[A] = offrushyds/gamecount
                 game.avgdefrushyds[A] = defrushyds/gamecount
                 game.avgoffpassyds[A] = offpassyds/gamecount
                 game.avgdefpassyds[A] = defpassyds/gamecount
+                game.yardsperplay[A] = (offrushyds + offpassyds) / (rushats + passats)
                 offrushyds += game.rushyds[A]
                 defrushyds += game.rushyds[B]
                 offpassyds += game.passyds[A]
                 defpassyds += game.passyds[B]
+                rushats += game.rushats[A]
+                passats += game.passats[A]
             gamecount += 1.0
     return teams, games
