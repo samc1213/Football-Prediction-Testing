@@ -41,7 +41,7 @@ def getMeTeamsAndGamesBitch():
     teams = {}
     games = {}
 
-    with open('game.csv') as game:
+    with open('data/2013/game.csv') as game:
         for row in csv.DictReader(game):
             visitteamcode = int(row['Visit Team Code'])
             hometeamcode = int(row['Home Team Code'])
@@ -50,7 +50,7 @@ def getMeTeamsAndGamesBitch():
 
             games[gamecode] = Game(gamedate, hometeamcode, visitteamcode)
 
-    with open('team-game-statistics.csv') as gamestats:
+    with open('data/2013/team-game-statistics.csv') as gamestats:
         for row in csv.DictReader(gamestats):
             gamecode = int(row['Game Code'])
             rowTeamCode = int(row['Team Code'])
@@ -80,15 +80,15 @@ def getMeTeamsAndGamesBitch():
     for code, team in teams.iteritems():
         team.games.sort(key=lambda x: x.date)
 
-    offrushyds = 0
-    offpassyds = 0
-    defrushyds = 0
-    defpassyds = 0
-    rushats = 0
-    passats = 0
-    gamecount = 0.0
-    firstgame = True
     for teamid, team in teams.iteritems():
+        offrushyds = 0
+        offpassyds = 0
+        defrushyds = 0
+        defpassyds = 0
+        rushats = 0
+        passats = 0
+        gamecount = 0.0
+        firstgame = True
         for game in team.games:
             if game.hometeamcode == teamid:
                 A = 0
@@ -124,4 +124,55 @@ def getMeTeamsAndGamesBitch():
                 rushats += game.rushats[A]
                 passats += game.passats[A]
             gamecount += 1.0
+    metadata = {}
+    totalavgoffrushyds = 0.0
+    totalavgdefrushyds = 0.0
+    for gameid, game in games.iteritems():
+        totalavgoffrushyds += game.avgoffpassyds[0] + game.avgoffpassyds[1]
+        totalavgdefrushyds += game.avgdefpassyds[0] + game.avgdefpassyds[1]
+    for teamid, team in teams.iteritems():
+        game = team.games[0]
+        if game.avgoffrushyds[0] != 0:
+                print "FUCK! HOME!"
+        if game.avgoffrushyds[1] != 0:
+                    print "Fuck! AWAY!"
+    print totalavgdefrushyds/(len(games)*2)
+    print totalavgoffrushyds/(len(games)*2)
+
+    metadata["avgoffrushydsavg"] = sum([game.avgoffrushyds[0] + game.avgoffrushyds[1] for game in team.games for teamid, team in teams.iteritems()])
+    metadata["avgoffpassydsavg"] = sum([game.avgoffpassyds[0] + game.avgoffpassyds[1] for gameid, game in games.iteritems()])/(len(games) * 2)
+    metadata["avgdefpassydsavg"] = sum([game.avgdefpassyds[0] + game.avgdefpassyds[1] for gameid, game in games.iteritems()])/(len(games) * 2)
+    metadata["avgdefrushydsavg"] = sum([game.avgdefrushyds[0] + game.avgdefrushyds[1] for game in team.games for teamid, team in teams.iteritems()])
+    print metadata
     return teams, games
+
+teams, games = getMeTeamsAndGamesBitch()
+rushydstotal = 0
+for gameid, game in games.iteritems():
+    for x in game.rushyds:
+        if x is None:
+            print "FUCK"
+        rushydstotal +=x
+    # if game.passyds is None:
+    #     print "FUCK"
+    # if game.points is None:
+    #     print "FUCK"
+    # if game.rushtds is None:
+    #     print "FUCK"
+    # if game.passtds is None:
+    #     print "FUCK"
+    # if game.avgoffrushyds is None:
+    #     print "FUCK"
+    # if game.avgdefrushyds is None:
+    #     print "FUCK"
+    # if game.avgdefpassyds is None:
+    #     print "FUCK"
+    # if game.avgoffpassyds is None:
+    #     print "FUCK"
+    # if game.passats is None:
+    #     print "FUCK"
+    # if game.rushats is None:
+    #     print "FUCK"
+    # if game.yardsperplay is None:
+    #     print "FUCK"
+print rushydstotal
