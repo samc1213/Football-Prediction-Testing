@@ -14,12 +14,13 @@ class Team:
         self.name = name
 
 class Game:
-    def __init__(self, date, hometeamcode, visitteamcode):
+    def __init__(self, date, gamecode, hometeamcode, visitteamcode):
         self.date = date
         self.hometeamcode = hometeamcode
         self.visitteamcode = visitteamcode
+        self.gamecode = gamecode
 
-def getMeTeamsAndGamesBitch():
+def getMeTeamsAndGamesBitch(keepbadgames=False):
     teams = {}
     games = {}
 
@@ -30,13 +31,14 @@ def getMeTeamsAndGamesBitch():
             gamecode = int(row['Game Code'])
             gamedate = datetime.datetime.strptime(row['Date'], '%m/%d/%Y').date()
 
-            games[gamecode] = Game(gamedate, hometeamcode, visitteamcode)
+            games[gamecode] = Game(gamedate, gamecode, hometeamcode, visitteamcode)
 
     with open('data/2013/team-game-statistics.csv') as gamestats:
         for row in csv.DictReader(gamestats):
             gamecode = int(row['Game Code'])
             rowTeamCode = int(row['Team Code'])
             rowGame = games[gamecode]
+            rowGame.gamecode = gamecode
             # HOME, AWAY!!!! HOME, AWAY in ze lists
             if rowGame.hometeamcode == rowTeamCode:
                 rowGame.rushyds[0] = int(row['Rush Yard'])
@@ -59,8 +61,21 @@ def getMeTeamsAndGamesBitch():
 
             teams[rowTeamCode].games.append(rowGame)
 
+    badteams = []
+    badgames = []
+# get rid of all teams with less than 10 games
     for code, team in teams.iteritems():
-        team.games.sort(key=lambda x: x.date)
+        if len(team.games) < 10:
+            badteams.append(code)
+            if keepbadgames == True:
+                for g in team.games:
+                    badgames.append(g.gamecode)
+
+    for t in badteams:
+        del teams[t]
+
+    for g in badgames:
+        del games[g]
 
     for teamid, team in teams.iteritems():
         offrushyds = 0
@@ -106,4 +121,8 @@ def getMeTeamsAndGamesBitch():
                 rushats += game.rushats[A]
                 passats += game.passats[A]
             gamecount += 1.0
+
     return teams, games
+teams, games = getMeTeamsAndGamesBitch()
+print "teams", len(teams)
+print "games", len(games)
