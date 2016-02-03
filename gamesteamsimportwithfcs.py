@@ -1,3 +1,9 @@
+'''
+This file includes FCS teams that may only play 1 game. In fact 59 teams have played only 1 game.
+Therefore, some long-run summing might get messed up.
+'''
+
+
 import csv
 import datetime
 
@@ -127,52 +133,4 @@ def getMeTeamsAndGamesBitch():
     metadata = {}
     totalavgoffrushyds = 0.0
     totalavgdefrushyds = 0.0
-    for gameid, game in games.iteritems():
-        totalavgoffrushyds += game.avgoffpassyds[0] + game.avgoffpassyds[1]
-        totalavgdefrushyds += game.avgdefpassyds[0] + game.avgdefpassyds[1]
-    for teamid, team in teams.iteritems():
-        game = team.games[0]
-        if game.avgoffrushyds[0] != 0:
-                print "FUCK! HOME!"
-        if game.avgoffrushyds[1] != 0:
-                    print "Fuck! AWAY!"
-    print totalavgdefrushyds/(len(games)*2)
-    print totalavgoffrushyds/(len(games)*2)
-
-    metadata["avgoffrushydsavg"] = sum([game.avgoffrushyds[0] + game.avgoffrushyds[1] for game in team.games for teamid, team in teams.iteritems()])
-    metadata["avgoffpassydsavg"] = sum([game.avgoffpassyds[0] + game.avgoffpassyds[1] for gameid, game in games.iteritems()])/(len(games) * 2)
-    metadata["avgdefpassydsavg"] = sum([game.avgdefpassyds[0] + game.avgdefpassyds[1] for gameid, game in games.iteritems()])/(len(games) * 2)
-    metadata["avgdefrushydsavg"] = sum([game.avgdefrushyds[0] + game.avgdefrushyds[1] for game in team.games for teamid, team in teams.iteritems()])
-    print metadata
     return teams, games
-
-teams, games = getMeTeamsAndGamesBitch()
-rushydstotal = 0
-for gameid, game in games.iteritems():
-    for x in game.rushyds:
-        if x is None:
-            print "FUCK"
-        rushydstotal +=x
-    # if game.passyds is None:
-    #     print "FUCK"
-    # if game.points is None:
-    #     print "FUCK"
-    # if game.rushtds is None:
-    #     print "FUCK"
-    # if game.passtds is None:
-    #     print "FUCK"
-    # if game.avgoffrushyds is None:
-    #     print "FUCK"
-    # if game.avgdefrushyds is None:
-    #     print "FUCK"
-    # if game.avgdefpassyds is None:
-    #     print "FUCK"
-    # if game.avgoffpassyds is None:
-    #     print "FUCK"
-    # if game.passats is None:
-    #     print "FUCK"
-    # if game.rushats is None:
-    #     print "FUCK"
-    # if game.yardsperplay is None:
-    #     print "FUCK"
-print rushydstotal
