@@ -44,7 +44,7 @@ class Game:
         if yardsperplay is None:
             self.yardsperplay = [None, None]
 
-def getMeTeamsAndGamesBitch(keepbadgames=False):
+def getMeTeamsAndGamesBitch(badteamsout=True):
     teams = {}
     games = {}
 
@@ -83,23 +83,43 @@ def getMeTeamsAndGamesBitch(keepbadgames=False):
             if rowTeamCode not in teams:
                 teams[rowTeamCode] = Team()
 
-            teams[rowTeamCode].games.append(rowGame)
+            teams[rowTeamCode].games.append(gamecode)
+
+    for code, team in teams.iteritems():
+        team.games.sort(key=lambda x: games[x].date)
 
     badteams = []
     badgames = []
+
 # get rid of all teams with less than 10 games
     for code, team in teams.iteritems():
         if len(team.games) < 10:
             badteams.append(code)
-            if keepbadgames == True:
+            if badteamsout:
                 for g in team.games:
-                    badgames.append(g.gamecode)
+                    badgames.append(g)
+    for g in badgames:
+
+        homecode = games[g].hometeamcode
+        visitcode = games[g].visitteamcode
+        if (g == 317000520130907):
+            print homecode
+            print visitcode
+            # print teams[homecode].games
+            #  & (homecode == 5 | visitcode == 5):
+            print "GODDAMN"
+        for i in range(len(teams[homecode].games)):
+            if teams[homecode].games[i] == g:
+                del teams[homecode].games[i]
+                break
+        for i in range(len(teams[visitcode].games)):
+            if teams[visitcode].games[i] == g:
+                del teams[visitcode].games[i]
+                break
+        del games[g]
 
     for t in badteams:
         del teams[t]
-
-    for g in badgames:
-        del games[g]
 
     for teamid, team in teams.iteritems():
         offrushyds = 0
@@ -110,47 +130,51 @@ def getMeTeamsAndGamesBitch(keepbadgames=False):
         passats = 0
         gamecount = 0.0
         firstgame = True
-        for game in team.games:
-            if game.hometeamcode == teamid:
+        print teamid
+        for g in range(len(team.games)):
+            gamecode = team.games[g]
+            if games[gamecode].hometeamcode == teamid:
                 A = 0
                 B = 1
-            elif game.visitteamcode == teamid:
+            elif games[gamecode].visitteamcode == teamid:
                 A = 1
                 B = 0
             else:
                 print "ERROR"
             if firstgame:
-                game.avgoffrushyds[A] = offrushyds
-                game.avgdefrushyds[A] = defrushyds
-                game.avgoffpassyds[A] = offpassyds
-                game.avgdefpassyds[A] = defpassyds
-                game.yardsperplay[A] = 0
+                games[gamecode].avgoffrushyds[A] = offrushyds
+                games[gamecode].avgdefrushyds[A] = defrushyds
+                games[gamecode].avgoffpassyds[A] = offpassyds
+                games[gamecode].avgdefpassyds[A] = defpassyds
+                games[gamecode].yardsperplay[A] = 0
                 firstgame = False
-                offrushyds += game.rushyds[A]
-                defrushyds += game.rushyds[B]
-                offpassyds += game.passyds[A]
-                defpassyds += game.passyds[B]
-                rushats += game.rushats[A]
-                passats += game.passats[A]
+                offrushyds += games[gamecode].rushyds[A]
+                defrushyds += games[gamecode].rushyds[B]
+                offpassyds += games[gamecode].passyds[A]
+                defpassyds += games[gamecode].passyds[B]
+                rushats += games[gamecode].rushats[A]
+                passats += games[gamecode].passats[A]
             else:
-                game.avgoffrushyds[A] = offrushyds/gamecount
-                game.avgdefrushyds[A] = defrushyds/gamecount
-                game.avgoffpassyds[A] = offpassyds/gamecount
-                game.avgdefpassyds[A] = defpassyds/gamecount
-                game.yardsperplay[A] = (offrushyds + offpassyds) / (rushats + passats)
-                offrushyds += game.rushyds[A]
-                defrushyds += game.rushyds[B]
-                offpassyds += game.passyds[A]
-                defpassyds += game.passyds[B]
-                rushats += game.rushats[A]
-                passats += game.passats[A]
+                games[gamecode].avgoffrushyds[A] = offrushyds/gamecount
+                games[gamecode].avgdefrushyds[A] = defrushyds/gamecount
+                games[gamecode].avgoffpassyds[A] = offpassyds/gamecount
+                games[gamecode].avgdefpassyds[A] = defpassyds/gamecount
+                games[gamecode].yardsperplay[A] = (offrushyds + offpassyds) / (rushats + passats)
+                offrushyds += games[gamecode].rushyds[A]
+                defrushyds += games[gamecode].rushyds[B]
+                offpassyds += games[gamecode].passyds[A]
+                defpassyds += games[gamecode].passyds[B]
+                rushats += games[gamecode].rushats[A]
+                passats += games[gamecode].passats[A]
             gamecount += 1.0
     firstgames = []
     for code, team in teams.iteritems():
-        if team.games[0].gamecode not in firstgames:
-            firstgames.append(team.games[0].gamecode)
+        if team.games[0] not in firstgames:
+            firstgames.append(team.games[0])
+            del team.games[0]
     for g in firstgames:
         del games[g]
+    print games[teams[5].games[0]].avgoffrushyds
     return teams, games
 teams, games = getMeTeamsAndGamesBitch()
 print "teams", len(teams)
