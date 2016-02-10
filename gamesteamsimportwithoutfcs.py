@@ -12,10 +12,13 @@ def GetMaxMins(attribute, games):
     for key, game in games.iteritems():
         combined.append(game[attribute][0])
         combined.append(game[attribute][1])
-    return max(combined), min(combined)
+    return min(combined), max(combined)
 
 def GetAverage(attribute, games):
     return sum([g[attribute][0] + g[attribute][1] for key, g in games.iteritems()])/(len(games) * 2)
+
+def GetAverageDifferential(attribute, games):
+    return sum([abs(float(g[attribute][0]) - g[attribute][1]) for key, g in games.iteritems()])/(len(games))
 
 class Team:
     def __init__(self, name=None, games=None):
@@ -79,11 +82,13 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
             newgame['passats'] = [None, None]
             newgame['rushats'] = [None, None]
             newgame['points'] = [None, None]
-            newgame['avgoffrushyds'] = [None, None]
-            newgame['avgdefrushyds'] = [None, None]
-            newgame['avgoffpassyds'] = [None, None]
-            newgame['avgdefpassyds'] = [None, None]
-            newgame['yardsperplay'] = [None, None]
+            newgame['avgoffrushydspergame'] = [None, None]
+            newgame['avgdefrushydspergame'] = [None, None]
+            newgame['avgoffpassydspergame'] = [None, None]
+            newgame['avgdefpassydspergame'] = [None, None]
+            newgame['avgyardsperplay'] = [None, None]
+            newgame['avgpointsperplay'] = [None, None]
+            newgame['avgpointsperplaymarginpergame'] = [None, None]
             games[gamecode] = newgame
 
     with open('data/2013/team-game-statistics.csv') as gamestats:
@@ -131,12 +136,11 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
 
         homecode = games[g]['hometeamcode']
         visitcode = games[g]['visitteamcode']
-        if (g == 317000520130907):
-            print homecode
-            print visitcode
+            # print homecode
+            # print visitcode
             # print teams[homecode].games
             #  & (homecode == 5 | visitcode == 5):
-            print "GODDAMN"
+            # print "GODDAMN"
         for i in range(len(teams[homecode].games)):
             if teams[homecode].games[i] == g:
                 del teams[homecode].games[i]
@@ -157,9 +161,11 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
         defpassyds = 0
         rushats = 0
         passats = 0
+        points = 0.0
         gamecount = 0.0
+        margin = 0.0
         firstgame = True
-        print teamid
+        # print teamid
         for g in range(len(team.games)):
             gamecode = team.games[g]
             if games[gamecode]['hometeamcode'] == teamid:
@@ -171,11 +177,15 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
             else:
                 print "ERROR"
             if firstgame:
-                games[gamecode]['avgoffrushyds'][A] = offrushyds
-                games[gamecode]['avgdefrushyds'][A] = defrushyds
-                games[gamecode]['avgoffpassyds'][A] = offpassyds
-                games[gamecode]['avgdefpassyds'][A] = defpassyds
-                games[gamecode]['yardsperplay'][A] = 0
+                games[gamecode]['avgoffrushydspergame'][A] = offrushyds
+                games[gamecode]['avgdefrushydspergame'][A] = defrushyds
+                games[gamecode]['avgoffpassydspergame'][A] = offpassyds
+                games[gamecode]['avgdefpassydspergame'][A] = defpassyds
+                games[gamecode]['avgyardsperplay'][A] = 0
+                games[gamecode]['avgpointsperplay'][A] = 0
+                print type(games[gamecode]['avgpointsperplaymarginpergame'])
+                games[gamecode]['avgpointsperplaymarginpergame'][A] = 0
+
                 firstgame = False
                 offrushyds += games[gamecode]['rushyds'][A]
                 defrushyds += games[gamecode]['rushyds'][B]
@@ -183,18 +193,25 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 defpassyds += games[gamecode]['passyds'][B]
                 rushats += games[gamecode]['rushats'][A]
                 passats += games[gamecode]['passats'][A]
+                points += games[gamecode]['points'][A]
+                margin += (games[gamecode]['points'][A] / float(games[gamecode]['rushats'][A]+ games[gamecode]['passats'][A])) - (games[gamecode]['points'][B]/ float(games[gamecode]['rushats'][B]+games[gamecode]['passats'][B]))
             else:
-                games[gamecode]['avgoffrushyds'][A] = offrushyds/gamecount
-                games[gamecode]['avgdefrushyds'][A] = defrushyds/gamecount
-                games[gamecode]['avgoffpassyds'][A] = offpassyds/gamecount
-                games[gamecode]['avgdefpassyds'][A] = defpassyds/gamecount
-                games[gamecode]['yardsperplay'][A] = (offrushyds + offpassyds) / (rushats + passats)
+                games[gamecode]['avgoffrushydspergame'][A] = offrushyds/gamecount
+                games[gamecode]['avgdefrushydspergame'][A] = defrushyds/gamecount
+                games[gamecode]['avgoffpassydspergame'][A] = offpassyds/gamecount
+                games[gamecode]['avgdefpassydspergame'][A] = defpassyds/gamecount
+                games[gamecode]['avgyardsperplay'][A] = (offrushyds + offpassyds) / float(rushats + passats)
+                games[gamecode]['avgpointsperplay'][A] = points/float(rushats+passats)
+                games[gamecode]['avgpointsperplaymarginpergame'][A] = margin/(gamecount)
                 offrushyds += games[gamecode]['rushyds'][A]
                 defrushyds += games[gamecode]['rushyds'][B]
                 offpassyds += games[gamecode]['passyds'][A]
                 defpassyds += games[gamecode]['passyds'][B]
                 rushats += games[gamecode]['rushats'][A]
                 passats += games[gamecode]['passats'][A]
+                points += games[gamecode]['points'][A]
+                margin += (games[gamecode]['points'][A] / float(games[gamecode]['rushats'][A]+ games[gamecode]['passats'][A])) - (games[gamecode]['points'][B]/ float(games[gamecode]['rushats'][B]+games[gamecode]['passats'][B]))
+
             gamecount += 1.0
     firstgames = []
     for code, team in teams.iteritems():
@@ -207,11 +224,16 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
     metadata = {}
     metadata['maxmins'] = {}
     metadata['averages'] = {}
-    metadata['maxmins']['avgoffrushyds'] = GetMaxMins('avgoffrushyds', games)
-    metadata['maxmins']['avgdefrushyds'] = GetMaxMins('avgdefrushyds', games)
-    metadata['maxmins']['avgoffpassyds'] = GetMaxMins('avgoffpassyds', games)
-    metadata['maxmins']['avgdefpassyds'] = GetMaxMins('avgdefpassyds', games)
-    metadata['maxmins']['yardsperplay'] = GetMaxMins('yardsperplay', games)
+    metadata['maxmins']['avgoffrushydspergame'] = GetMaxMins('avgoffrushydspergame', games)
+    metadata['maxmins']['avgdefrushydspergame'] = GetMaxMins('avgdefrushydspergame', games)
+    metadata['maxmins']['avgoffpassydspergame'] = GetMaxMins('avgoffpassydspergame', games)
+    metadata['maxmins']['avgdefpassydspergame'] = GetMaxMins('avgdefpassydspergame', games)
+    metadata['maxmins']['avgpointsperplaymarginpergame'] = GetMaxMins('avgpointsperplaymarginpergame', games)
+    metadata['maxmins']['avgyardsperplay'] = GetMaxMins('avgyardsperplay', games)
+    metadata['maxmins']['avgpointsperplay'] = GetMaxMins('avgpointsperplay', games)
     metadata['averages']['points'] = GetAverage('points', games)
+    metadata['averages']['pointdifferential'] = GetAverageDifferential('points', games)
 
+    print metadata
     return teams, games, metadata
+
