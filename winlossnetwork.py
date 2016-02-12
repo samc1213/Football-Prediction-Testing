@@ -6,30 +6,7 @@ from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure.modules   import SoftmaxLayer, LinearLayer, SigmoidLayer, TanhLayer
 from gamesteamsimportwithoutfcs import getMeTeamsAndGamesBitch
 
-
- # newgame['date'] = gamedate
- #            newgame['gamecode'] = gamecode
- #            newgame['hometeamcode'] = hometeamcode
- #            newgame['visitteamcode'] = visitteamcode
- #            newgame['rushyds'] = [None, None]
- #            newgame['passyds'] = [None, None]
- #            newgame['rushtds'] = [None, None]
- #            newgame['passtds'] = [None, None]
- #            newgame['passats'] = [None, None]
- #            newgame['rushats'] = [None, None]
- #            newgame['points'] = [None, None]
- #            newgame['avgoffrushydspergame'] = [None, None]
- #            newgame['avgyardsperplay'] = [None, None]
- #            newgame['avgdefrushydspergame'] = [None, None]
- #            newgame['avgoffpassydspergame'] = [None, None]
- #            newgame['avgdefpassydspergame'] = [None, None]
-
-
 attributelist = ['avgoffpassydspergame', 'avgdefpassydspergame', 'avgoffrushydspergame', 'avgdefrushydspergame', 'avgyardsperplay', 'avgpointsperplay', 'avgpointsperplaymarginpergame']
-
-
-
-
 
 def Normalize(minmaxtuple, value):
     newvalues = []
@@ -37,9 +14,7 @@ def Normalize(minmaxtuple, value):
     return (value - minmaxtuple[0]) / denom
 
 teams, games, metadata = getMeTeamsAndGamesBitch()
-# alldata = SupervisedDataSet(len(attributelist)*2, 1)
 alldata = SupervisedDataSet(len(attributelist)*2, 2)
-
 
 #home, away
 for gameid, game in games.iteritems():
@@ -62,13 +37,11 @@ n = buildNetwork(traindata.indim, 5, traindata.outdim, outclass=SoftmaxLayer)
 print "Number of training patterns: ", len(traindata)
 trainer = BackpropTrainer( n, dataset=traindata, momentum=0.1, verbose=True, weightdecay=0.01)
 trainer.trainEpochs(200)
-# print traindata
 
 totalcount = 0
 rightcount = 0
 sumerrors = 0.0
 for data in testdata:
-    # print data[0]
     inputvalues = []
     for attr in attributelist:
         inputvalues.append(Normalize(metadata['maxmins'][attr], game[attr][0]))
@@ -82,7 +55,5 @@ for data in testdata:
     else:
         if game['points'][0] < game['points'][1]:
             rightcount +=1.0
-    totalcount +=1.0
-    # print game.points[0]-game.points[1]
 
-print rightcount/float(totalcount)
+print rightcount/len(testdata)
