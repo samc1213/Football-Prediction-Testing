@@ -26,39 +26,6 @@ class Team:
             self.games = []
         self.name = name
 
-# class Game:
-#     def __init__(self, date, gamecode, hometeamcode, visitteamcode, rushyds=None, passyds=None, rushtds=None, passtds=None, points=None, avgoffrushyds=None, avgdefrushyds=None, avgoffpassyds=None, avgdefpassyds=None, passats=None, rushats=None,  yardsperplay=None):
-#         self.date = date
-#         self.hometeamcode = hometeamcode
-#         self.visitteamcode = visitteamcode
-#         self.gamecode = gamecode
-#         if rushyds is None:
-#             self.rushyds = [None, None]
-#         if passyds is None:
-#             self.passyds = [None, None]
-#         if points is None:
-#             self.points = [None, None]
-#         if rushtds is None:
-#             self.rushtds = [None, None]
-#         if passtds is None:
-#             self.passtds = [None, None]
-#         if avgoffrushyds is None:
-#             self.avgoffrushyds = [None, None]
-#         if avgdefrushyds is None:
-#             self.avgdefrushyds = [None, None]
-#         if avgdefpassyds is None:
-#             self.avgdefpassyds = [None, None]
-#         if avgoffpassyds is None:
-#             self.avgoffpassyds = [None, None]
-#         if passats is None:
-#             self.passats = [None, None]
-#         if rushats is None:
-#             self.rushats = [None, None]
-#         if yardsperplay is None:
-#             self.yardsperplay = [None, None]
-    # def getAttr(self, str):
-    #     return self[str]
-
 def getMeTeamsAndGamesBitch(badteamsout=True):
     teams = {}
     games = {}
@@ -236,4 +203,3 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
 
     print metadata
     return teams, games, metadata
-
