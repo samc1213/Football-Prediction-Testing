@@ -96,13 +96,89 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
             rushes[gamecode][playnumber]['yards'] = yards
             rushes[gamecode][playnumber]['touchdown'] = touchdown
             rushes[gamecode][playnumber]['firstdown'] = firstdown
-            rushes[gamecode][playnumber]['sasck'] = sack
+            rushes[gamecode][playnumber]['sack'] = sack
             rushes[gamecode][playnumber]['fumble'] = fumble
             rushes[gamecode][playnumber]['fumblelost'] = fumblelost
             rushes[gamecode][playnumber]['safety'] = safety
 
     passes = {}
+    with open('data/2013/pass.csv') as passfile:
+        for row in csv.DictReader(passfile):
+            gamecode = int(row['Game Code'])
+            playnumber = int(row['Play Number'])
+            teamcode = int(row['Team Code'])
+            passercode = int(row['Passer Player Code'])
+            #receiver code can be nothing if pass incomplete
+            try:
+                receivercode = int(row['Receiver Player Code'])
+            except ValueError:
+                receivercode = -1
+            attempt = int(row['Attempt'])
+            completion = bool(row['Completion'])
+            yards = int(row['Yards'])
+            touchdown = bool(row['Touchdown'])
+            interception = bool(row['Interception'])
+            firstdown = bool(row['1st Down'])
+            dropped = bool(row['Dropped'])
+            if gamecode not in passes:
+                passes[gamecode] = {}
+            passes[gamecode][playnumber] = {}
+            passes[gamecode][playnumber]['teamcode'] = teamcode
+            passes[gamecode][playnumber]['passercode'] = playercode
+            passes[gamecode][playnumber]['receivercode'] = attempt
+            passes[gamecode][playnumber]['yards'] = yards
+            passes[gamecode][playnumber]['touchdown'] = touchdown
+            passes[gamecode][playnumber]['firstdown'] = firstdown
+            passes[gamecode][playnumber]['attempt'] = attempt
+            passes[gamecode][playnumber]['interception'] = interception
+            passes[gamecode][playnumber]['dropped'] = dropped
 
+    plays = {}
+    with open('data/2013/play.csv') as playsfile:
+        for row in csv.DictReader(playsfile):
+            gamecode = int(row['Game Code'])
+            playnumber = int(row['Play Number'])
+            periodnumber = int(row['Period Number'])
+            try:
+                clock = int(row['Clock'])
+            except ValueError:
+                clock = -1
+            offteamcode = int(row['Offense Team Code'])
+            defteamcode = int(row['Defense Team Code'])
+            offteampts = int(row['Offense Points'])
+            defteampts = int(row['Defense Points'])
+            try:
+                down = int(row['Down'])
+            except ValueError:
+                down = 0
+            spot = int(row['Spot'])
+            playtype = str(row['Play Type'])
+            try:
+                drivenumber = int(row['Drive Number'])
+            except ValueError:
+                drivenumber = 0
+            try:
+                driveplay = int(row['Drive Play'])
+            except ValueError:
+                driveplay = 0
+            if gamecode not in plays:
+                plays[gamecode] = {}
+            plays[gamecode][playnumber] = {}
+            plays[gamecode][playnumber]['periodnumber'] = periodnumber
+            plays[gamecode][playnumber]['clock'] = clock
+            plays[gamecode][playnumber]['offteamcode'] =offteamcode
+            plays[gamecode][playnumber]['defteamcode'] = defteamcode
+            plays[gamecode][playnumber]['offteampts'] = offteampts
+            plays[gamecode][playnumber]['defteampts'] = defteampts
+            plays[gamecode][playnumber]['down'] = down
+            plays[gamecode][playnumber]['spot'] = spot
+            plays[gamecode][playnumber]['playtype'] = playtype
+            plays[gamecode][playnumber]['drivenumber'] = drivenumber
+            plays[gamecode][playnumber]['driveplay'] = driveplay
+            if plays[gamecode][playnumber]['playtype'] == 'RUSH':
+                plays[gamecode][playnumber]['yards'] = rushes[gamecode][playnumber]['yards']
+            elif plays[gamecode][playnumber]['playtype'] == 'PASS':
+                plays[gamecode][playnumber]['yards'] = passes[gamecode][playnumber]['yards']
 #     with open('data/2013/team-game-statistics.csv') as gamestats:
 #         for row in csv.DictReader(gamestats):
 #             gamecode = int(row['Game Code'])
