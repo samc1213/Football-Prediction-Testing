@@ -6,7 +6,7 @@ from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure.modules   import SoftmaxLayer, LinearLayer, SigmoidLayer, TanhLayer
 from gamesteamsimportwithoutfcs import getMeTeamsAndGamesBitch
 
-attributelist = ['avgoffpassydspergame', 'avgdefpassydspergame', 'avgoffrushydspergame', 'avgdefrushydspergame', 'avgyardsperplay', 'avgpointsperplay', 'avgpointsperplaymarginpergame']
+attributelist = ['successrate', 'avgoffpassydspergame', 'avgdefpassydspergame', 'avgoffrushydspergame', 'avgdefrushydspergame', 'avgyardsperplay', 'avgpointsperplay', 'avgpointsperplaymarginpergame']
 
 def Normalize(minmaxtuple, value):
     newvalues = []
@@ -37,6 +37,7 @@ n = buildNetwork(traindata.indim, 5, traindata.outdim, outclass=SoftmaxLayer)
 print "Number of training patterns: ", len(traindata)
 trainer = BackpropTrainer( n, dataset=traindata, momentum=0.1, verbose=True, weightdecay=0.01)
 trainer.trainEpochs(200)
+# trainer.trainUntilConvergence()
 
 totalcount = 0
 rightcount = 0

@@ -350,17 +350,18 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
         del games[g]
 #
     metadata = {}
-#     metadata['maxmins'] = {}
-#     metadata['averages'] = {}
-#     metadata['maxmins']['avgoffrushydspergame'] = GetMaxMins('avgoffrushydspergame', games)
-#     metadata['maxmins']['avgdefrushydspergame'] = GetMaxMins('avgdefrushydspergame', games)
-#     metadata['maxmins']['avgoffpassydspergame'] = GetMaxMins('avgoffpassydspergame', games)
-#     metadata['maxmins']['avgdefpassydspergame'] = GetMaxMins('avgdefpassydspergame', games)
-#     metadata['maxmins']['avgpointsperplaymarginpergame'] = GetMaxMins('avgpointsperplaymarginpergame', games)
-#     metadata['maxmins']['avgyardsperplay'] = GetMaxMins('avgyardsperplay', games)
-#     metadata['maxmins']['avgpointsperplay'] = GetMaxMins('avgpointsperplay', games)
-#     metadata['averages']['points'] = GetAverage('points', games)
-#     metadata['averages']['pointdifferential'] = GetAverageDifferential('points', games)
+    metadata['maxmins'] = {}
+    metadata['averages'] = {}
+    metadata['maxmins']['avgoffrushydspergame'] = GetMaxMins('avgoffrushydspergame', games)
+    metadata['maxmins']['avgdefrushydspergame'] = GetMaxMins('avgdefrushydspergame', games)
+    metadata['maxmins']['avgoffpassydspergame'] = GetMaxMins('avgoffpassydspergame', games)
+    metadata['maxmins']['avgdefpassydspergame'] = GetMaxMins('avgdefpassydspergame', games)
+    metadata['maxmins']['avgpointsperplaymarginpergame'] = GetMaxMins('avgpointsperplaymarginpergame', games)
+    metadata['maxmins']['avgyardsperplay'] = GetMaxMins('avgyardsperplay', games)
+    metadata['maxmins']['avgpointsperplay'] = GetMaxMins('avgpointsperplay', games)
+    metadata['averages']['points'] = GetAverage('points', games)
+    metadata['averages']['pointdifferential'] = GetAverageDifferential('points', games)
+    metadata['maxmins']['successrate'] = GetMaxMins('successrate', games)
 #
 #     print metadata
     return teams, games, metadata

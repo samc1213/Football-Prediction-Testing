@@ -6,7 +6,14 @@ from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure.modules   import SoftmaxLayer, LinearLayer, SigmoidLayer, TanhLayer
 from gamesteamsimportwithoutfcs import getMeTeamsAndGamesBitch
 
-attributelist = ['avgoffpassydspergame', 'avgdefpassydspergame', 'avgoffrushydspergame', 'avgdefrushydspergame', 'avgyardsperplay', 'avgpointsperplay', 'avgpointsperplaymarginpergame']
+attributelist = [
+    'avgoffpassydspergame', 'avgdefpassydspergame', 
+    'avgoffrushydspergame', 
+    'avgdefrushydspergame', 
+    'avgyardsperplay', 
+    'avgpointsperplay', 
+    'avgpointsperplaymarginpergame',
+    'successrate']
 
 def Normalize(minmaxtuple, value):
     newvalues = []
@@ -39,7 +46,6 @@ alldata = SupervisedDataSet(len(attributelist)*2, 1)
 for gameid, game in games.iteritems():
     inputs = [Normalize(metadata['maxmins'][attr], game[attr][0]) for attr in attributelist]
     inputs.extend( [Normalize(metadata['maxmins'][attr], game[attr][1]) for attr in attributelist] )
-
     outputs = [game['points'][0] - game['points'][1]]
     alldata.addSample(inputs, outputs)
 
