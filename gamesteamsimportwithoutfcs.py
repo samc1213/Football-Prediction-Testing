@@ -20,6 +20,31 @@ def GetAverage(attribute, games):
 def GetAverageDifferential(attribute, games):
     return sum([abs(float(g[attribute][0]) - g[attribute][1]) for key, g in games.iteritems()])/(len(games))
 
+def GetSuccessRateAttributes(gamecode, teamcode, playsingame):
+    totaloffplays = 0.0
+    successfuloffplays = 0.0
+    for playnumber, play in playsingame.iteritems():
+        try:
+            notturnover = playsingame[playnumber+1]['offteamcode']==teamcode
+        except KeyError:
+            notturover = True
+        rushorpass = (play['playtype'] == 'RUSH') or (play['playtype'] == 'PASS')
+        if play['offteamcode'] == teamcode:
+            if ((play['down'] == 1) & rushorpass & notturnover):
+                totaloffplays +=1.0
+                if play['yards']/float(play['distance']) >= 0.5:
+                    successfuloffplays +=1.0
+            elif ((play['down'] == 2) & rushorpass & (notturnover)):
+                totaloffplays +=1.0
+                if play['yards']/float(play['distance']) >= 0.7:
+                    successfuloffplays +=1.0
+            elif (play['down'] == 3 or play['down'] ==4) & rushorpass & notturnover:
+                totaloffplays +=1.0
+                if play['yards']/float(play['distance']) >= 1.0:
+                    successfuloffplays +=1.0
+    return totaloffplays, successfuloffplays
+
+
 class Team:
     def __init__(self, name=None, games=None):
         if games is None:
@@ -56,6 +81,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
             newgame['avgyardsperplay'] = [None, None]
             newgame['avgpointsperplay'] = [None, None]
             newgame['avgpointsperplaymarginpergame'] = [None, None]
+            newgame['successrate'] = [None, None]
             games[gamecode] = newgame
 
     lastwasthird = False
@@ -151,6 +177,10 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 down = int(row['Down'])
             except ValueError:
                 down = 0
+            try:
+                distance = int(row['Distance'])
+            except ValueError:
+                distance = -1
             spot = int(row['Spot'])
             playtype = str(row['Play Type'])
             try:
@@ -171,6 +201,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
             plays[gamecode][playnumber]['offteampts'] = offteampts
             plays[gamecode][playnumber]['defteampts'] = defteampts
             plays[gamecode][playnumber]['down'] = down
+            plays[gamecode][playnumber]['distance'] = distance
             plays[gamecode][playnumber]['spot'] = spot
             plays[gamecode][playnumber]['playtype'] = playtype
             plays[gamecode][playnumber]['drivenumber'] = drivenumber
@@ -179,135 +210,144 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 plays[gamecode][playnumber]['yards'] = rushes[gamecode][playnumber]['yards']
             elif plays[gamecode][playnumber]['playtype'] == 'PASS':
                 plays[gamecode][playnumber]['yards'] = passes[gamecode][playnumber]['yards']
-#     with open('data/2013/team-game-statistics.csv') as gamestats:
-#         for row in csv.DictReader(gamestats):
-#             gamecode = int(row['Game Code'])
-#             rowTeamCode = int(row['Team Code'])
-#             rowGame = games[gamecode]
-#             # rowGame['gamecode'] = gamecode
-#             # HOME, AWAY!!!! HOME, AWAY in ze lists
-#             if rowGame['hometeamcode'] == rowTeamCode:
-#                 rowGame['rushyds'][0] = int(row['Rush Yard'])
-#                 rowGame['passyds'][0] = int(row['Pass Yard'])
-#                 rowGame['rushtds'][0] = int(row['Rush TD'])
-#                 rowGame['passtds'][0] = int(row['Pass TD'])
-#                 rowGame['passats'][0] = int(row['Pass Att'])
-#                 rowGame['rushats'][0] = int(row['Rush Att'])
-#                 rowGame['points'][0] = int(row['Points'])
-#             else:
-#                 rowGame['rushyds'][1] = int(row['Rush Yard'])
-#                 rowGame['passyds'][1] = int(row['Pass Yard'])
-#                 rowGame['rushtds'][1] = int(row['Rush TD'])
-#                 rowGame['passtds'][1] = int(row['Pass TD'])
-#                 rowGame['passats'][1] = int(row['Pass Att'])
-#                 rowGame['rushats'][1] = int(row['Rush Att'])
-#                 rowGame['points'][1] = int(row['Points'])
-#             if rowTeamCode not in teams:
-#                 teams[rowTeamCode] = Team()
-#
-#             teams[rowTeamCode].games.append(gamecode)
-#
-#     for code, team in teams.iteritems():
-#         team.games.sort(key=lambda x: games[x]['date'])
-#
-#     badteams = []
-#     badgames = []
-#
-# # get rid of all teams with less than 10 games
-#     for code, team in teams.iteritems():
-#         if len(team.games) < 10:
-#             badteams.append(code)
-#             if badteamsout:
-#                 for g in team.games:
-#                     badgames.append(g)
-#     for g in badgames:
-#
-#         homecode = games[g]['hometeamcode']
-#         visitcode = games[g]['visitteamcode']
-#             # print homecode
-#             # print visitcode
-#             # print teams[homecode].games
-#             #  & (homecode == 5 | visitcode == 5):
-#             # print "GODDAMN"
-#         for i in range(len(teams[homecode].games)):
-#             if teams[homecode].games[i] == g:
-#                 del teams[homecode].games[i]
-#                 break
-#         for i in range(len(teams[visitcode].games)):
-#             if teams[visitcode].games[i] == g:
-#                 del teams[visitcode].games[i]
-#                 break
-#         del games[g]
-#
-#     for t in badteams:
-#         del teams[t]
-#
-#     for teamid, team in teams.iteritems():
-#         offrushyds = 0
-#         offpassyds = 0
-#         defrushyds = 0
-#         defpassyds = 0
-#         rushats = 0
-#         passats = 0
-#         points = 0.0
-#         gamecount = 0.0
-#         margin = 0.0
-#         firstgame = True
-#         # print teamid
-#         for g in range(len(team.games)):
-#             gamecode = team.games[g]
-#             if games[gamecode]['hometeamcode'] == teamid:
-#                 A = 0
-#                 B = 1
-#             elif games[gamecode]['visitteamcode'] == teamid:
-#                 A = 1
-#                 B = 0
-#             else:
-#                 print "ERROR"
-#             if firstgame:
-#                 games[gamecode]['avgoffrushydspergame'][A] = offrushyds
-#                 games[gamecode]['avgdefrushydspergame'][A] = defrushyds
-#                 games[gamecode]['avgoffpassydspergame'][A] = offpassyds
-#                 games[gamecode]['avgdefpassydspergame'][A] = defpassyds
-#                 games[gamecode]['avgyardsperplay'][A] = 0
-#                 games[gamecode]['avgpointsperplay'][A] = 0
-#                 print type(games[gamecode]['avgpointsperplaymarginpergame'])
-#                 games[gamecode]['avgpointsperplaymarginpergame'][A] = 0
-#
-#                 firstgame = False
-#                 offrushyds += games[gamecode]['rushyds'][A]
-#                 defrushyds += games[gamecode]['rushyds'][B]
-#                 offpassyds += games[gamecode]['passyds'][A]
-#                 defpassyds += games[gamecode]['passyds'][B]
-#                 rushats += games[gamecode]['rushats'][A]
-#                 passats += games[gamecode]['passats'][A]
-#                 points += games[gamecode]['points'][A]
-#                 margin += (games[gamecode]['points'][A] / float(games[gamecode]['rushats'][A]+ games[gamecode]['passats'][A])) - (games[gamecode]['points'][B]/ float(games[gamecode]['rushats'][B]+games[gamecode]['passats'][B]))
-#             else:
-#                 games[gamecode]['avgoffrushydspergame'][A] = offrushyds/gamecount
-#                 games[gamecode]['avgdefrushydspergame'][A] = defrushyds/gamecount
-#                 games[gamecode]['avgoffpassydspergame'][A] = offpassyds/gamecount
-#                 games[gamecode]['avgdefpassydspergame'][A] = defpassyds/gamecount
-#                 games[gamecode]['avgyardsperplay'][A] = (offrushyds + offpassyds) / float(rushats + passats)
-#                 games[gamecode]['avgpointsperplay'][A] = points/float(rushats+passats)
-#                 games[gamecode]['avgpointsperplaymarginpergame'][A] = margin/(gamecount)
-#                 offrushyds += games[gamecode]['rushyds'][A]
-#                 defrushyds += games[gamecode]['rushyds'][B]
-#                 offpassyds += games[gamecode]['passyds'][A]
-#                 defpassyds += games[gamecode]['passyds'][B]
-#                 rushats += games[gamecode]['rushats'][A]
-#                 passats += games[gamecode]['passats'][A]
-#                 points += games[gamecode]['points'][A]
-#                 margin += (games[gamecode]['points'][A] / float(games[gamecode]['rushats'][A]+ games[gamecode]['passats'][A])) - (games[gamecode]['points'][B]/ float(games[gamecode]['rushats'][B]+games[gamecode]['passats'][B]))
-#
-#             gamecount += 1.0
-#     firstgames = []
-#     for code, team in teams.iteritems():
-#         if team.games[0] not in firstgames:
-#             firstgames.append(team.games[0])
-#             del team.games[0]
-#     for g in firstgames:
-#         del games[g]
+
+    with open('data/2013/team-game-statistics.csv') as gamestats:
+        for row in csv.DictReader(gamestats):
+            gamecode = int(row['Game Code'])
+            rowTeamCode = int(row['Team Code'])
+            rowGame = games[gamecode]
+            # rowGame['gamecode'] = gamecode
+            # HOME, AWAY!!!! HOME, AWAY in ze lists
+            if rowGame['hometeamcode'] == rowTeamCode:
+                rowGame['rushyds'][0] = int(row['Rush Yard'])
+                rowGame['passyds'][0] = int(row['Pass Yard'])
+                rowGame['rushtds'][0] = int(row['Rush TD'])
+                rowGame['passtds'][0] = int(row['Pass TD'])
+                rowGame['passats'][0] = int(row['Pass Att'])
+                rowGame['rushats'][0] = int(row['Rush Att'])
+                rowGame['points'][0] = int(row['Points'])
+            else:
+                rowGame['rushyds'][1] = int(row['Rush Yard'])
+                rowGame['passyds'][1] = int(row['Pass Yard'])
+                rowGame['rushtds'][1] = int(row['Rush TD'])
+                rowGame['passtds'][1] = int(row['Pass TD'])
+                rowGame['passats'][1] = int(row['Pass Att'])
+                rowGame['rushats'][1] = int(row['Rush Att'])
+                rowGame['points'][1] = int(row['Points'])
+            if rowTeamCode not in teams:
+                teams[rowTeamCode] = Team()
+
+            teams[rowTeamCode].games.append(gamecode)
+
+    for code, team in teams.iteritems():
+        team.games.sort(key=lambda x: games[x]['date'])
+
+    badteams = []
+    badgames = []
+
+# get rid of all teams with less than 10 games
+    for code, team in teams.iteritems():
+        if len(team.games) < 10:
+            badteams.append(code)
+            if badteamsout:
+                for g in team.games:
+                    badgames.append(g)
+    for g in badgames:
+
+        homecode = games[g]['hometeamcode']
+        visitcode = games[g]['visitteamcode']
+            # print homecode
+            # print visitcode
+            # print teams[homecode].games
+            #  & (homecode == 5 | visitcode == 5):
+            # print "GODDAMN"
+        for i in range(len(teams[homecode].games)):
+            if teams[homecode].games[i] == g:
+                del teams[homecode].games[i]
+                break
+        for i in range(len(teams[visitcode].games)):
+            if teams[visitcode].games[i] == g:
+                del teams[visitcode].games[i]
+                break
+        del games[g]
+
+    for t in badteams:
+        del teams[t]
+
+    for teamid, team in teams.iteritems():
+        successfuloffplays = 0.0
+        totaloffplays = 0.0
+        offrushyds = 0
+        offpassyds = 0
+        defrushyds = 0
+        defpassyds = 0
+        rushats = 0
+        passats = 0
+        points = 0.0
+        gamecount = 0.0
+        margin = 0.0
+        firstgame = True
+        # print teamid
+        for g in range(len(team.games)):
+            gamecode = team.games[g]
+            if games[gamecode]['hometeamcode'] == teamid:
+                A = 0
+                B = 1
+            elif games[gamecode]['visitteamcode'] == teamid:
+                A = 1
+                B = 0
+            else:
+                print "ERROR"
+            if firstgame:
+                games[gamecode]['avgoffrushydspergame'][A] = offrushyds
+                games[gamecode]['avgdefrushydspergame'][A] = defrushyds
+                games[gamecode]['avgoffpassydspergame'][A] = offpassyds
+                games[gamecode]['avgdefpassydspergame'][A] = defpassyds
+                games[gamecode]['avgyardsperplay'][A] = 0
+                games[gamecode]['avgpointsperplay'][A] = 0
+                games[gamecode]['avgpointsperplaymarginpergame'][A] = 0
+                games[gamecode]['successrate'][A] = 0
+
+                firstgame = False
+                offrushyds += games[gamecode]['rushyds'][A]
+                defrushyds += games[gamecode]['rushyds'][B]
+                offpassyds += games[gamecode]['passyds'][A]
+                defpassyds += games[gamecode]['passyds'][B]
+                rushats += games[gamecode]['rushats'][A]
+                passats += games[gamecode]['passats'][A]
+                points += games[gamecode]['points'][A]
+                margin += (games[gamecode]['points'][A] / float(games[gamecode]['rushats'][A]+ games[gamecode]['passats'][A])) - (games[gamecode]['points'][B]/ float(games[gamecode]['rushats'][B]+games[gamecode]['passats'][B]))
+                totaloffplaystemp, successfuloffplaystemp = GetSuccessRateAttributes(gamecode, teamid, plays[gamecode])
+                successfuloffplays += successfuloffplaystemp
+                totaloffplays += totaloffplaystemp
+            else:
+                games[gamecode]['avgoffrushydspergame'][A] = offrushyds/gamecount
+                games[gamecode]['avgdefrushydspergame'][A] = defrushyds/gamecount
+                games[gamecode]['avgoffpassydspergame'][A] = offpassyds/gamecount
+                games[gamecode]['avgdefpassydspergame'][A] = defpassyds/gamecount
+                games[gamecode]['avgyardsperplay'][A] = (offrushyds + offpassyds) / float(rushats + passats)
+                games[gamecode]['avgpointsperplay'][A] = points/float(rushats+passats)
+                games[gamecode]['avgpointsperplaymarginpergame'][A] = margin/(gamecount)
+                games[gamecode]['successrate'][A] = successfuloffplays/totaloffplays
+                offrushyds += games[gamecode]['rushyds'][A]
+                defrushyds += games[gamecode]['rushyds'][B]
+                offpassyds += games[gamecode]['passyds'][A]
+                defpassyds += games[gamecode]['passyds'][B]
+                rushats += games[gamecode]['rushats'][A]
+                passats += games[gamecode]['passats'][A]
+                points += games[gamecode]['points'][A]
+                margin += (games[gamecode]['points'][A] / float(games[gamecode]['rushats'][A]+ games[gamecode]['passats'][A])) - (games[gamecode]['points'][B]/ float(games[gamecode]['rushats'][B]+games[gamecode]['passats'][B]))
+                totaloffplaystemp, successfuloffplaystemp = GetSuccessRateAttributes(gamecode, teamid, plays[gamecode])
+                successfuloffplays += successfuloffplaystemp
+                totaloffplays += totaloffplaystemp
+            gamecount += 1.0
+    firstgames = []
+    for code, team in teams.iteritems():
+        if team.games[0] not in firstgames:
+            firstgames.append(team.games[0])
+            del team.games[0]
+    for g in firstgames:
+        del games[g]
 #
     metadata = {}
 #     metadata['maxmins'] = {}
