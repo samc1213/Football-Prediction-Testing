@@ -295,7 +295,6 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 for g in team.games:
                     badgames.append(g)
     for g in badgames:
-
         homecode = games[g]['hometeamcode']
         visitcode = games[g]['visitteamcode']
             # print homecode
@@ -352,8 +351,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 games[gamecode]['avgpointsperplaymarginpergame'][A] = 0
                 games[gamecode]['successrate'][A] = 0
                 games[gamecode]['avgthirddownconversionspergame'][A] = 0
-                games[gamecode]['startingpositiongameavg'][A] = 0
-
+                games[gamecode]['avgstartingpositionpergame'][A] = 0
                 firstgame = False
                 offrushyds += games[gamecode]['rushyds'][A]
                 defrushyds += games[gamecode]['rushyds'][B]
