@@ -5,7 +5,7 @@ from pybrain.tools.shortcuts     import buildNetwork
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure.modules   import SoftmaxLayer, LinearLayer, SigmoidLayer, TanhLayer
 from gamesteamsimportwithoutfcs import getMeTeamsAndGamesBitch
-
+from gamesteamsimportwithoutfcs import attributelist
 attributelist = [
     'avgoffpassydspergame',
     'avgdefpassydspergame',

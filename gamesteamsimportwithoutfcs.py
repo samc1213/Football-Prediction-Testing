@@ -7,6 +7,18 @@ Therefore, some long-run summing might get messed up.
 import csv
 import datetime
 
+attributelist = [
+    'avgoffpassydspergame',
+    'avgdefpassydspergame',
+    'avgoffrushydspergame',
+    'avgdefrushydspergame',
+    'avgyardsperplay',
+    'avgpointsperplay',
+    'avgpointsperplaymarginpergame',
+    'successrate',
+    'avgthirddownconversionspergame',
+    'avgstartingpositionpergame']
+
 def GetMaxMins(attribute, games):
     combined = []
     for key, game in games.iteritems():
@@ -81,9 +93,11 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
             newgame['avgyardsperplay'] = [None, None]
             newgame['avgpointsperplay'] = [None, None]
             newgame['avgpointsperplaymarginpergame'] = [None, None]
+            newgame['avgstartingpositionpergame'] = [None, None]
             newgame['successrate'] = [None, None]
             newgame['thirddownconversions'] = [None, None]
             newgame['avgthirddownconversionspergame'] = [None, None]
+            newgame['startingpositiongameavg'] = [None, None]
             games[gamecode] = newgame
 
     lastwasthird = False
@@ -232,6 +246,16 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 rowGame['points'][0] = int(row['Points'])
                 homethirddownconversions = [play for playnumber, play in plays[gamecode].iteritems() if (play['offteamcode'] == rowTeamCode) & (play['down'] == 3) & (play['yards'] > play['distance']) & ((play['playtype'] == 'RUSH') | (play['playtype'] == 'PASS'))]
                 rowGame['thirddownconversions'][0] = len(homethirddownconversions)
+                homedrivestartplays = []
+                for pn, p in plays[gamecode].iteritems():
+                    if p['offteamcode'] == rowTeamCode:
+                        try:
+                            if plays[gamecode][pn - 1]['offteamcode'] != rowTeamCode:
+                                homedrivestartplays.append(p)
+                        except KeyError:
+                            pass
+                homestartingposgameavg = sum([p['spot'] for p in homedrivestartplays])/len(homedrivestartplays)
+                rowGame['startingpositiongameavg'][0] = homestartingposgameavg
             else:
                 rowGame['rushyds'][1] = int(row['Rush Yard'])
                 rowGame['passyds'][1] = int(row['Pass Yard'])
@@ -242,6 +266,16 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 rowGame['points'][1] = int(row['Points'])
                 awaythirddownconversions = [play for playnumber, play in plays[gamecode].iteritems() if (play['offteamcode'] == rowTeamCode) & (play['down'] == 3) & (play['yards'] > play['distance']) & ((play['playtype'] == 'RUSH') | (play['playtype'] == 'PASS'))]
                 rowGame['thirddownconversions'][1] = len(awaythirddownconversions)
+                awaydrivestartplays = []
+                for pn, p in plays[gamecode].iteritems():
+                    if p['offteamcode'] == rowTeamCode:
+                        try:
+                            if plays[gamecode][pn - 1]['offteamcode'] != rowTeamCode:
+                                awaydrivestartplays.append(p)
+                        except KeyError:
+                            pass
+                awaystartingposgameavg = sum([p['spot'] for p in awaydrivestartplays])/len(awaydrivestartplays)
+                rowGame['startingpositiongameavg'][1] = awaystartingposgameavg
             if rowTeamCode not in teams:
                 teams[rowTeamCode] = Team()
 
@@ -295,6 +329,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
         thirddownconversions = 0
         gamecount = 0.0
         margin = 0.0
+        drivestartingpositions = 0
         firstgame = True
         # print teamid
         for g in range(len(team.games)):
@@ -317,6 +352,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 games[gamecode]['avgpointsperplaymarginpergame'][A] = 0
                 games[gamecode]['successrate'][A] = 0
                 games[gamecode]['avgthirddownconversionspergame'][A] = 0
+                games[gamecode]['startingpositiongameavg'][A] = 0
 
                 firstgame = False
                 offrushyds += games[gamecode]['rushyds'][A]
@@ -328,6 +364,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 points += games[gamecode]['points'][A]
                 margin += (games[gamecode]['points'][A] / float(games[gamecode]['rushats'][A]+ games[gamecode]['passats'][A])) - (games[gamecode]['points'][B]/ float(games[gamecode]['rushats'][B]+games[gamecode]['passats'][B]))
                 thirddownconversions += games[gamecode]['thirddownconversions'][A]
+                drivestartingpositions += games[gamecode]['startingpositiongameavg'][A]
                 totaloffplaystemp, successfuloffplaystemp = GetSuccessRateAttributes(gamecode, teamid, plays[gamecode])
                 successfuloffplays += successfuloffplaystemp
                 totaloffplays += totaloffplaystemp
@@ -341,6 +378,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 games[gamecode]['avgpointsperplaymarginpergame'][A] = margin/(gamecount)
                 games[gamecode]['successrate'][A] = successfuloffplays/totaloffplays
                 games[gamecode]['avgthirddownconversionspergame'][A] = thirddownconversions/gamecount
+                games[gamecode]['avgstartingpositionpergame'][A] = drivestartingpositions/gamecount
                 offrushyds += games[gamecode]['rushyds'][A]
                 defrushyds += games[gamecode]['rushyds'][B]
                 offpassyds += games[gamecode]['passyds'][A]
@@ -350,6 +388,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 points += games[gamecode]['points'][A]
                 thirddownconversions += games[gamecode]['thirddownconversions'][A]
                 margin += (games[gamecode]['points'][A] / float(games[gamecode]['rushats'][A]+ games[gamecode]['passats'][A])) - (games[gamecode]['points'][B]/ float(games[gamecode]['rushats'][B]+games[gamecode]['passats'][B]))
+                drivestartingpositions += games[gamecode]['startingpositiongameavg'][A]
                 totaloffplaystemp, successfuloffplaystemp = GetSuccessRateAttributes(gamecode, teamid, plays[gamecode])
                 successfuloffplays += successfuloffplaystemp
                 totaloffplays += totaloffplaystemp
@@ -376,6 +415,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
     metadata['averages']['pointdifferential'] = GetAverageDifferential('points', games)
     metadata['maxmins']['successrate'] = GetMaxMins('successrate', games)
     metadata['maxmins']['avgthirddownconversionspergame'] = GetMaxMins('avgthirddownconversionspergame', games)
+    metadata['maxmins']['avgstartingpositionpergame'] = GetMaxMins('avgstartingpositionpergame', games)
 #
 #     print metadata
     return teams, games, metadata
