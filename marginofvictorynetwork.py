@@ -7,13 +7,15 @@ from pybrain.structure.modules   import SoftmaxLayer, LinearLayer, SigmoidLayer,
 from gamesteamsimportwithoutfcs import getMeTeamsAndGamesBitch
 
 attributelist = [
-    'avgoffpassydspergame', 'avgdefpassydspergame', 
-    'avgoffrushydspergame', 
-    'avgdefrushydspergame', 
-    'avgyardsperplay', 
-    'avgpointsperplay', 
+    'avgoffpassydspergame',
+    'avgdefpassydspergame',
+    'avgoffrushydspergame',
+    'avgdefrushydspergame',
+    'avgyardsperplay',
+    'avgpointsperplay',
     'avgpointsperplaymarginpergame',
-    'successrate']
+    'successrate',
+    'avgthirddownconversionspergame']
 
 def Normalize(minmaxtuple, value):
     newvalues = []
@@ -54,7 +56,7 @@ testdata, traindata = alldata.splitWithProportion(0.70)
 print "IMPORTANT ", traindata.outdim
 print "Number of training patterns: ", len(traindata)
 trainer = BackpropTrainer( n, dataset=traindata, momentum=0.1, verbose=True, weightdecay=0.01)
-trainer.trainEpochs(100)
+trainer.trainEpochs(200)
 
 totalcount = 0
 rightcount = 0
@@ -70,4 +72,4 @@ for data in testdata:
 
     sumerrors += abs((game['points'][0] - game['points'][1]) - expectedOutput[0])
 
-print sumerrors/len(testdata)
+print "AVERAGE ERROR", sumerrors/len(testdata)

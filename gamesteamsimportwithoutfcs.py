@@ -83,6 +83,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
             newgame['avgpointsperplaymarginpergame'] = [None, None]
             newgame['successrate'] = [None, None]
             newgame['thirddownconversions'] = [None, None]
+            newgame['avgthirddownconversionspergame'] = [None, None]
             games[gamecode] = newgame
 
     lastwasthird = False
@@ -291,6 +292,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
         rushats = 0
         passats = 0
         points = 0.0
+        thirddownconversions = 0
         gamecount = 0.0
         margin = 0.0
         firstgame = True
@@ -314,6 +316,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 games[gamecode]['avgpointsperplay'][A] = 0
                 games[gamecode]['avgpointsperplaymarginpergame'][A] = 0
                 games[gamecode]['successrate'][A] = 0
+                games[gamecode]['avgthirddownconversionspergame'][A] = 0
 
                 firstgame = False
                 offrushyds += games[gamecode]['rushyds'][A]
@@ -324,6 +327,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 passats += games[gamecode]['passats'][A]
                 points += games[gamecode]['points'][A]
                 margin += (games[gamecode]['points'][A] / float(games[gamecode]['rushats'][A]+ games[gamecode]['passats'][A])) - (games[gamecode]['points'][B]/ float(games[gamecode]['rushats'][B]+games[gamecode]['passats'][B]))
+                thirddownconversions += games[gamecode]['thirddownconversions'][A]
                 totaloffplaystemp, successfuloffplaystemp = GetSuccessRateAttributes(gamecode, teamid, plays[gamecode])
                 successfuloffplays += successfuloffplaystemp
                 totaloffplays += totaloffplaystemp
@@ -336,6 +340,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 games[gamecode]['avgpointsperplay'][A] = points/float(rushats+passats)
                 games[gamecode]['avgpointsperplaymarginpergame'][A] = margin/(gamecount)
                 games[gamecode]['successrate'][A] = successfuloffplays/totaloffplays
+                games[gamecode]['avgthirddownconversionspergame'][A] = thirddownconversions/gamecount
                 offrushyds += games[gamecode]['rushyds'][A]
                 defrushyds += games[gamecode]['rushyds'][B]
                 offpassyds += games[gamecode]['passyds'][A]
@@ -343,6 +348,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 rushats += games[gamecode]['rushats'][A]
                 passats += games[gamecode]['passats'][A]
                 points += games[gamecode]['points'][A]
+                thirddownconversions += games[gamecode]['thirddownconversions'][A]
                 margin += (games[gamecode]['points'][A] / float(games[gamecode]['rushats'][A]+ games[gamecode]['passats'][A])) - (games[gamecode]['points'][B]/ float(games[gamecode]['rushats'][B]+games[gamecode]['passats'][B]))
                 totaloffplaystemp, successfuloffplaystemp = GetSuccessRateAttributes(gamecode, teamid, plays[gamecode])
                 successfuloffplays += successfuloffplaystemp
@@ -369,6 +375,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
     metadata['averages']['points'] = GetAverage('points', games)
     metadata['averages']['pointdifferential'] = GetAverageDifferential('points', games)
     metadata['maxmins']['successrate'] = GetMaxMins('successrate', games)
+    metadata['maxmins']['avgthirddownconversionspergame'] = GetMaxMins('avgthirddownconversionspergame', games)
 #
 #     print metadata
     return teams, games, metadata
