@@ -420,3 +420,4 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
 #     print metadata
     return teams, games, metadata
 teams, games, metadata = getMeTeamsAndGamesBitch()
+print metadata['maxmins']['avgstartingpositionpergame']
