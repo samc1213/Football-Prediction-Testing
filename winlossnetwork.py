@@ -6,8 +6,17 @@ from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure.modules   import SoftmaxLayer, LinearLayer, SigmoidLayer, TanhLayer
 from gamesteamsimportwithoutfcs import getMeTeamsAndGamesBitch
 
-attributelist = ['successrate', 'avgoffpassydspergame', 'avgdefpassydspergame', 'avgoffrushydspergame', 'avgdefrushydspergame', 'avgyardsperplay', 'avgpointsperplay', 'avgpointsperplaymarginpergame']
-
+attributelist = [
+    'avgoffpassydspergame',
+    'avgdefpassydspergame',
+    'avgoffrushydspergame',
+    'avgdefrushydspergame',
+    'avgyardsperplay',
+    'avgpointsperplay',
+    'avgpointsperplaymarginpergame',
+    'successrate',
+    'avgthirddownconversionspergame']
+    
 def Normalize(minmaxtuple, value):
     newvalues = []
     denom = minmaxtuple[1] - minmaxtuple[0]
