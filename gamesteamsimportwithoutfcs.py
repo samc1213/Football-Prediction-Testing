@@ -82,6 +82,7 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
             newgame['avgpointsperplay'] = [None, None]
             newgame['avgpointsperplaymarginpergame'] = [None, None]
             newgame['successrate'] = [None, None]
+            newgame['thirddownconversions'] = [None, None]
             games[gamecode] = newgame
 
     lastwasthird = False
@@ -210,6 +211,8 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 plays[gamecode][playnumber]['yards'] = rushes[gamecode][playnumber]['yards']
             elif plays[gamecode][playnumber]['playtype'] == 'PASS':
                 plays[gamecode][playnumber]['yards'] = passes[gamecode][playnumber]['yards']
+            else:
+                plays[gamecode][playnumber]['yards'] = None
 
     with open('data/2013/team-game-statistics.csv') as gamestats:
         for row in csv.DictReader(gamestats):
@@ -226,6 +229,8 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 rowGame['passats'][0] = int(row['Pass Att'])
                 rowGame['rushats'][0] = int(row['Rush Att'])
                 rowGame['points'][0] = int(row['Points'])
+                homethirddownconversions = [play for playnumber, play in plays[gamecode].iteritems() if (play['offteamcode'] == rowTeamCode) & (play['down'] == 3) & (play['yards'] > play['distance']) & ((play['playtype'] == 'RUSH') | (play['playtype'] == 'PASS'))]
+                rowGame['thirddownconversions'][0] = len(homethirddownconversions)
             else:
                 rowGame['rushyds'][1] = int(row['Rush Yard'])
                 rowGame['passyds'][1] = int(row['Pass Yard'])
@@ -234,6 +239,8 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
                 rowGame['passats'][1] = int(row['Pass Att'])
                 rowGame['rushats'][1] = int(row['Rush Att'])
                 rowGame['points'][1] = int(row['Points'])
+                awaythirddownconversions = [play for playnumber, play in plays[gamecode].iteritems() if (play['offteamcode'] == rowTeamCode) & (play['down'] == 3) & (play['yards'] > play['distance']) & ((play['playtype'] == 'RUSH') | (play['playtype'] == 'PASS'))]
+                rowGame['thirddownconversions'][1] = len(awaythirddownconversions)
             if rowTeamCode not in teams:
                 teams[rowTeamCode] = Team()
 
@@ -365,4 +372,4 @@ def getMeTeamsAndGamesBitch(badteamsout=True):
 #
 #     print metadata
     return teams, games, metadata
-getMeTeamsAndGamesBitch()
+teams, games, metadata = getMeTeamsAndGamesBitch()
